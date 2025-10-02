@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McPherson Football Team Expense Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ba55d3 0%, #dda0dd 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: rgb(142, 93, 189);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .exit {
+            background-color: #dc3545;
+        }
+        .exit:hover {
+            background-color: #c82333;
+        }
+        .view {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f8f9fa;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="menu" class="view active">
+            <h1>🏟️ McPherson Football Team Expense Tracker</h1>
+            <div class="menu">
+                <button onclick="viewTeamDetails()">👥 View Team Details</button>
+                <button onclick="transferWindow()">🔄 Transfer Window</button>
+                <button class="exit" onclick="exitApp()">❌ Exit</button>
+            </div>
+        </div>
+        <div id="add" class="view">
+            <h2>➕ Add Expense</h2>
+            <form onsubmit="addExpense(event)">
+                <select id="team" required>
+                    <option value="">Select Team</option>
+                    <option value="Ajebo fc">Ajebo fc</option>
+                    <option value="athletico">athletico</option>
+                    <option value="Braga">Braga</option>
+                    <option value="Brest">Brest</option>
+                    <option value="Levante">Levante</option>
+                    <option value="Psv">Psv</option>
+                </select>
+                <input type="text" id="description" placeholder="Expense description" required>
+                <input type="number" id="amount" placeholder="Amount (₦)" step="0.01" required>
+                <button type="submit">Add Expense</button>
+                <button type="button" onclick="showView('menu')">Back</button>
+            </form>
+        </div>
+        <div id="view" class="view">
+            <h2>📋 All Logged Expenses</h2>
+            <ul id="expensesList"></ul>
+            <button onclick="showView('menu')">Back to Menu</button>
+        </div>
+        <div id="totals" class="view">
+            <h2>📊 Total Expenses by Team</h2>
+            <ul id="totalsList"></ul>
+            <button onclick="showView('menu')">Back to Menu</button>
+        </div>
+        <div id="setbudgets" class="view">
+            <h2>💰 Set Budgets</h2>
+            <form onsubmit="setBudgets(event)">
+                <div id="budgetsForm"></div>
+                <button type="submit">Set Budgets</button>
+                <button type="button" onclick="showView('menu')">Back</button>
+            </form>
+        </div>
+        <div id="transferMenu" class="view">
+            <h2>🔄 Transfer Window</h2>
+            <div class="menu">
+                <button onclick="transferHistory()">📜 Transfer History</button>
+                <button onclick="transferApplication()">📝 Transfer Application</button>
+                <button onclick="playersDetails()">👤 Players Details</button>
+                <button onclick="transferStatus()">📊 Transfer Status</button>
+                <button onclick="showView('menu')">Back to Menu</button>
+            </div>
+        </div>
+        <div id="playersDetailsMenu" class="view">
+            <h2>👤 Players Details</h2>
+            <div class="menu">
+                <button onclick="createPlayerProfile()">➕ Create Player Profile</button>
+                <button onclick="showView('transferMenu')">Back to Transfer Window</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const teams = [
+            "Ajebo fc",
+            "athletico",
+            "Braga",
+            "Brest",
+            "Levante",
+            "Psv"
+        ];
+
+        let expenses = JSON.parse(localStorage.getItem('mcpherson_expenses')) || [];
+        let budgets = JSON.parse(localStorage.getItem('mcpherson_budgets')) || {};
+
+
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if (viewId === 'view') {
+                displayExpenses();
+            } else if (viewId === 'totals') {
+                displayTotals();
+            } else if (viewId === 'setbudgets') {
+                populateBudgets();
+            }
+        }
+
+        function addExpense(event) {
+            event.preventDefault();
+            const team = document.getElementById('team').value;
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            expenses.push({ team, description, amount });
+            localStorage.setItem('mcpherson_expenses', JSON.stringify(expenses));
+            document.getElementById('team').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            alert('Expense recorded!');
+            showView('menu');
+        }
+
+        function displayExpenses() {
+            const list = document.getElementById('expensesList');
+            list.innerHTML = '';
+            if (expenses.length === 0) {
+                list.innerHTML = '<li>⚠️ No expenses recorded yet.</li>';
+            } else {
+                expenses.forEach(exp => {
+                    const li = document.createElement('li');
+                    li.textContent = `- ${exp.team}: ${exp.description} — ₦${exp.amount.toFixed(2)}`;
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        function displayTotals() {
+            const list = document.getElementById('totalsList');
+            list.innerHTML = '';
+            const totals = {};
+            expenses.forEach(exp => {
+                totals[exp.team] = (totals[exp.team] || 0) + exp.amount;
+            });
+            if (Object.keys(totals).length === 0) {
+                list.innerHTML = '<li>⚠️ No expenses recorded yet.</li>';
+            } else {
+                Object.entries(totals).forEach(([team, total]) => {
+                    const balance = ((budgets[team] || 0) - total).toFixed(2);
+                    const li = document.createElement('li');
+                    li.textContent = `- ${team}: Expenses ₦${total.toFixed(2)}, Balance ₦${balance}`;
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        function populateBudgets() {
+            const form = document.getElementById('budgetsForm');
+            form.innerHTML = '';
+            teams.forEach(team => {
+                const div = document.createElement('div');
+                div.innerHTML = `<label>${team}: <input type="number" id="budget_${team.replace(/\s+/g, '_')}" step="0.01" value="${budgets[team] || ''}"></label>`;
+                form.appendChild(div);
+            });
+        }
+
+        function setBudgets(event) {
+            event.preventDefault();
+            teams.forEach(team => {
+                const id = `budget_${team.replace(/\s+/g, '_')}`;
+                budgets[team] = parseFloat(document.getElementById(id).value) || 0;
+            });
+            localStorage.setItem('mcpherson_budgets', JSON.stringify(budgets));
+            showView('menu');
+        }
+
+        function viewTeamDetails() {
+            window.location.href = 'team_details.html';
+        }
+
+        function transferWindow() {
+            showView('transferMenu');
+        }
+
+        function transferHistory() {
+            alert('Transfer History feature coming soon!');
+        }
+
+        function transferApplication() {
+            alert('Transfer Application feature coming soon!');
+        }
+
+        function playersDetails() {
+            showView('playersDetailsMenu');
+        }
+
+        function createPlayerProfile() {
+            alert('Create Player Profile feature coming soon!');
+        }
+
+        function transferStatus() {
+            alert('Transfer Status feature coming soon!');
+        }
+
+        function exitApp() {
+            alert('Goodbye! ✅');
+        }
+
+        // Initialize
+    </script>
+</body>
+</html>

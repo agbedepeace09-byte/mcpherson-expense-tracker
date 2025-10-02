@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McPherson Team Details</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c6a2d8 0%, #a68dbd 100%);
+            background-image: url('https://schoolinfo.com.ng/wp-content/uploads/2019/12/McPherson-University.jpg');
+            background-size: 200px 200px;
+            background-position: center 10px;
+            background-repeat: no-repeat, no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .nofocus { outline: 0; }
+        .richImage img { vertical-align: top; }
+        .container {
+            background: linear-gradient(to bottom, rgba(128, 0, 128, 0.95), rgba(255, 255, 255, 0.95));
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 650px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        h2 {
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+        button:hover {
+            background: linear-gradient(45deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+        .back {
+            background: linear-gradient(45deg, #6c757d, #545b62);
+        }
+        .back:hover {
+            background: linear-gradient(45deg, #545b62, #495057);
+        }
+        .view {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+            transition: all 0.2s ease;
+        }
+        li:hover {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            transform: translateX(5px);
+        }
+        select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="select" class="view active">
+            <h1>McPherson Team Details</h1>
+            <p>Select a team to view details:</p>
+            <select id="teamSelect" onchange="selectTeam(this.value)">
+                <option value="">Select a team</option>
+                <option value="Ajebo fc">Ajebo fc</option>
+                <option value="athletico">athletico</option>
+                <option value="Braga">Braga</option>
+                <option value="Brest">Brest</option>
+                <option value="Levante">Levante</option>
+                <option value="Psv">Psv</option>
+            </select>
+            <button class="back" onclick="goBack()">Back to Main</button>
+        </div>
+        <div id="menu" class="view">
+            <h2 id="teamTitle"></h2>
+            <div class="menu">
+                <button onclick="showView('add')">1. ➕ Add Expense</button>
+                <button onclick="showView('view')">2. 📋 View Expenses</button>
+                <button onclick="showView('balance')">3. 💰 View Balance</button>
+                <button onclick="showView('deposit')">4. 💰 Add Deposit</button>
+                <button onclick="showView('history')">5. 📜 Transaction History</button>
+                <button onclick="showView('select')">6. 🔙 Back to Teams</button>
+            </div>
+        </div>
+        <div id="add" class="view">
+            <h2>Add Expense for <span id="addTeamTitle"></span></h2>
+            <form onsubmit="addExpense(event)">
+                <input type="text" id="description" placeholder="Expense description" required>
+                <input type="number" id="amount" placeholder="Amount (₦)" step="0.01" required>
+                <button type="submit">Add Expense</button>
+                <button type="button" onclick="showView('menu')">Back</button>
+            </form>
+        </div>
+        <div id="view" class="view">
+            <h2>Expenses for <span id="viewTeamTitle"></span></h2>
+            <ul id="expensesList"></ul>
+            <button onclick="showView('menu')">Back</button>
+        </div>
+        <div id="balance" class="view">
+            <h2>Balance for <span id="balanceTeamTitle"></span></h2>
+            <p id="totalBudget"></p>
+            <p id="totalExpense"></p>
+            <p id="balanceAmount"></p>
+            <button onclick="showView('menu')">Back</button>
+        </div>
+        <div id="deposit" class="view">
+            <h2>Add Deposit for <span id="depositTeamTitle"></span></h2>
+            <form onsubmit="addDeposit(event)">
+                <input type="text" id="depositDescription" placeholder="Deposit description" required>
+                <input type="number" id="depositAmount" placeholder="Deposit Amount (₦)" step="0.01" required>
+                <button type="submit">Add Deposit</button>
+                <button type="button" onclick="showView('menu')">Back</button>
+            </form>
+        </div>
+        <div id="history" class="view">
+            <h2>Transaction History for <span id="historyTeamTitle"></span></h2>
+            <ul id="historyList"></ul>
+            <button onclick="showView('menu')">Back</button>
+        </div>
+    </div>
+
+    <script>
+        const teams = [
+            "Ajebo fc",
+            "athletico",
+            "Braga",
+            "Brest",
+            "Levante",
+            "Psv"
+        ];
+
+        let expenses = JSON.parse(localStorage.getItem('mcpherson_expenses')) || [];
+        let deposits = JSON.parse(localStorage.getItem('mcpherson_deposits')) || [];
+        let budgets = JSON.parse(localStorage.getItem('mcpherson_budgets')) || {};
+        let currentTeam = '';
+
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if (viewId === 'view') {
+                loadExpenses();
+            } else if (viewId === 'balance') {
+                loadBalance();
+            } else if (viewId === 'add') {
+                document.getElementById('addTeamTitle').textContent = currentTeam;
+            } else if (viewId === 'deposit') {
+                document.getElementById('depositTeamTitle').textContent = currentTeam;
+            } else if (viewId === 'history') {
+                loadHistory();
+            } else if (viewId === 'menu') {
+                // already set title
+            }
+        }
+
+        function selectTeam(team) {
+            if (team) {
+                currentTeam = team;
+                document.getElementById('teamTitle').textContent = currentTeam;
+                showView('menu');
+            }
+        }
+
+        function loadExpenses() {
+            document.getElementById('viewTeamTitle').textContent = currentTeam;
+            const teamExpenses = expenses.filter(exp => exp.team === currentTeam);
+            const list = document.getElementById('expensesList');
+            list.innerHTML = '';
+            if (teamExpenses.length === 0) {
+                list.innerHTML = '<li>No expenses recorded for this team.</li>';
+            } else {
+                teamExpenses.forEach(exp => {
+                    const li = document.createElement('li');
+                    li.textContent = `${exp.description} — ₦${exp.amount.toFixed(2)}`;
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        function loadBalance() {
+            document.getElementById('balanceTeamTitle').textContent = currentTeam;
+            const teamExpenses = expenses.filter(exp => exp.team === currentTeam);
+            const total = teamExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const budget = budgets[currentTeam] || 0;
+            document.getElementById('totalBudget').textContent = `Total Budget: ₦${budget.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `Total Expenses: ₦${total.toFixed(2)}`;
+            const balance = (budget - total).toFixed(2);
+            document.getElementById('balanceAmount').textContent = `Available Balance: ₦${balance}`;
+        }
+
+        function loadHistory() {
+            document.getElementById('historyTeamTitle').textContent = currentTeam;
+            const teamExpenses = expenses.filter(exp => exp.team === currentTeam).map(exp => ({...exp, type: 'Expense'}));
+            const teamDeposits = deposits.filter(dep => dep.team === currentTeam).map(dep => ({...dep, type: 'Deposit'}));
+            const allTransactions = [...teamExpenses, ...teamDeposits].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            if (allTransactions.length === 0) {
+                list.innerHTML = '<li>No transactions recorded for this team.</li>';
+            } else {
+                allTransactions.forEach(trans => {
+                    const li = document.createElement('li');
+                    li.textContent = `${trans.type}: ${trans.description} — ₦${trans.amount.toFixed(2)} (${new Date(trans.date).toLocaleDateString()})`;
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        function addExpense(event) {
+            event.preventDefault();
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            expenses.push({ team: currentTeam, description, amount, date: new Date().toISOString() });
+            localStorage.setItem('mcpherson_expenses', JSON.stringify(expenses));
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            alert('Expense recorded!');
+            showView('menu');
+        }
+
+        function addDeposit(event) {
+            event.preventDefault();
+            const description = document.getElementById('depositDescription').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            deposits.push({ team: currentTeam, description, amount, date: new Date().toISOString() });
+            if (!budgets[currentTeam]) budgets[currentTeam] = 0;
+            budgets[currentTeam] += amount;
+            localStorage.setItem('mcpherson_deposits', JSON.stringify(deposits));
+            localStorage.setItem('mcpherson_budgets', JSON.stringify(budgets));
+            document.getElementById('depositDescription').value = '';
+            document.getElementById('depositAmount').value = '';
+            alert('Deposit added!');
+            showView('menu');
+        }
+
+        function goBack() {
+            window.location.href = 'mcpherson_expenses.html';
+        }
+
+        // Initialize
+        // Dropdown is static
+    </script>
+</body>
+</html>
